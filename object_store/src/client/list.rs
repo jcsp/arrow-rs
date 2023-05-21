@@ -70,15 +70,14 @@ impl<T: ListClient> ListClientExt for T {
     ) -> BoxStream<'_, Result<ListResult>> {
         let offset = offset.map(|x| x.to_string());
         let prefix = prefix
-            .filter(|x| !x.as_ref().is_empty())
-            .map(|p| format!("{}{}", p.as_ref(), crate::path::DELIMITER));
+            .filter(|x| !x.as_ref().is_empty()).map(|p| p.clone());
 
         stream_paginated(
             (prefix, offset),
             move |(prefix, offset), token| async move {
                 let (r, next_token) = self
                     .list_request(
-                        prefix.as_deref(),
+                        prefix.as_ref().map(|p| p.as_ref()),
                         delimiter,
                         token.as_deref(),
                         offset.as_deref(),
